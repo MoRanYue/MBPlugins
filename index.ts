@@ -382,14 +382,14 @@ palRcon：* 通过RCON执行服务器命令
 当前玩家数：${playerList.length.toString()}
 玩家列表：`
         playerList.forEach(playerInfo => {
-          message += "\n" + playerInfo.name + "："
-          message += "\n UID：" + playerInfo.uid
-          message += "\n Steam ID：" + playerInfo.steamId
+          message += "\n " + playerInfo.name + "："
+          message += "\n  UID：" + playerInfo.uid
+          message += "\n  Steam ID：" + playerInfo.steamId
         });
 
         ev.reply(message, undefined, true)
       })
-    })
+    }, ["palworldStatus", "帕鲁_状态", "帕鲁_服务器状态"])
 
     this.onCommand("palRcon", (ev, state, args) => {
       if (args.length == 0) {
@@ -418,14 +418,14 @@ palRcon：* 通过RCON执行服务器命令
         
         if (serverHosts.length > 1) {
           if (isIp) {
-            state.host = args.unshift()
+            state.host = args.shift()
           }
-          state.command = args.join(" ")
-
-          if (args.length < 2) {
+          else {
+            state.command = args.join(" ")
             ev.reply("该群聊已经添加多个服务器，需要指定服务器IP。请提供服务器IP", undefined, true)
             return false
           }
+          state.command = args.join(" ")
         }
         else {
           if (isIp) {
@@ -460,14 +460,14 @@ palRcon：* 通过RCON执行服务器命令
         
         if (serverHosts.length > 1) {
           if (isIp) {
-            state.host = args.unshift()
+            state.host = args.shift()
           }
-          state.command = args.join(" ")
-
-          if (args.length < 2) {
+          else {
+            state.command = args.join(" ")
             ev.reply("已经添加多个服务器，需要指定服务器IP。请提供服务器IP", undefined, true)
             return false
           }
+          state.command = args.join(" ")
         }
         else {
           if (isIp) {
@@ -490,11 +490,20 @@ palRcon：* 通过RCON执行服务器命令
       const content: string = ev.getPlainText().trim()
       if (isIP(content)) {
         state.host = content
-        this.executeRconCommand(ev, state.host, state.command)
-        return ListenerEnum.ReceiverReturn.finish
+        if (state.command) {
+          this.executeRconCommand(ev, state.host, state.command)
+          return ListenerEnum.ReceiverReturn.finish
+        }
+        ev.reply("需要提供命令", undefined, true)
+        return ListenerEnum.ReceiverReturn.continue
       }
       ev.reply("需要指定正确的IP地址，现在请报告IP地址", undefined, true)
       return ListenerEnum.ReceiverReturn.keep
+    }).receive("command", (ev, state) => {
+      console.log("abdsaifjfgisafjgsiafjsaif")
+      state.command = ev.getPlainText().trim()
+      this.executeRconCommand(ev, state.host, state.command)
+      return ListenerEnum.ReceiverReturn.finish
     })
   }
 
@@ -505,6 +514,9 @@ palRcon：* 通过RCON执行服务器命令
     }
     else if (ev.messageType == EventEnum.MessageType.private) {
       serverConfig = this.reportTargets.users[ev.userId].servers[host]
+    }
+    else {
+      return
     }
     if (!serverConfig.rcon) {
       ev.reply("该服务器未开启RCON", undefined, true)

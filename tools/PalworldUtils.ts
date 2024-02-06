@@ -87,6 +87,10 @@ export class PalworldUtils {
     const playerListStr: string[] = playerInfos.split("\n")
     playerListStr.shift()
     playerListStr.forEach(playerInfo => {
+      if (!playerInfo) {
+        return
+      }
+
       const info: string[] = playerInfo.split(",")
       playerList.push({
         name: info[0],
